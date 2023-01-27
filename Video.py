@@ -3,15 +3,15 @@
 
 # In[4]:
 
-
-from pytube import Channel
+# import library to get youtube data
+from pytube import Channel 
 from pytube import Playlist
 from pytube import YouTube
+
+# import library for modle bulding
 import pandas as pd
-from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.feature_extraction.text import TfidfVectorizer
-import multiprocessing 
+from sklearn.feature_extraction.text import TfidfVectorizer 
 import time
 import telegram.ext
 import os
@@ -21,23 +21,29 @@ import os
 
 
 
-
+# A function for creating youtube video dataset 
 def get_data(channel_name):
+    # Making channel url
     channel_url=f"https://www.youtube.com/c/{channel_name}"
-    print(channel_url)
+    #Creating a channel object
     channel = Channel(channel_url)
+    # Making a list of urls of video
     all_links=channel.video_urls
-    title=[]
-    keywords=[]
-    url=[]
-    for i in all_links:
+    
+    title=[]# It will hold the title of videos
+    keywords=[]# It will hold the key wordes of videos
+    url=[]# It will hold the url of videos
+    # going through all links and fatching there info
+    for video_link in all_links:
         title.append(YouTube(i).title)
         keywords.append(YouTube(i).keywords)
         url.append(i)
+    #joining all keyes together
     all_key=[]
     for i in keywords:
         all_key.append(" ".join(i))
     data=[]
+    # Creating a Data frame with the data
     for x,y,z in zip(title,url,all_key):
         d={}
         d['title']=x
@@ -45,10 +51,10 @@ def get_data(channel_name):
         d["keywordes"]=z
         data.append(d)
     df=pd.DataFrame(data)
+    # Saving it in csv
     try:os.remove(f"{channel_name}.csv")
     except:pass
     df.to_csv(f"{channel_name}.csv")
-    print("Done")
     return
 
 
@@ -103,30 +109,11 @@ def give_reply(updater,context):
 updater = telegram.ext.Updater(key, use_context = True)
 disp = updater.dispatcher
 
+#adding the functions in CommandHandler
 disp.add_handler(telegram.ext.CommandHandler("start",start))
 disp.add_handler(telegram.ext.CommandHandler("refresh",refresh))
 disp.add_handler(telegram.ext.MessageHandler(telegram.ext.Filters.text,give_reply))
 updater.start_polling()
 updater.idle()
-
-
-# In[8]:
-
-
-a=time.time()
-get_data("dhruvrathee")
-b=time.time()
-print(b-a)
-
-
-# In[ ]:
-
-
-get_data("dhruvrathee")
-
-
-# In[ ]:
-
-
 
 
